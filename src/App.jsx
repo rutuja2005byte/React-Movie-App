@@ -1,13 +1,13 @@
 import { useState } from 'react'
 const Card = ({ title }) => {
-  const [hadLiked, setHasLiked] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
 
   return (
     <div className="card">
       <h2>{title}</h2>
 
-      <button onClick= {() => setHasLiked(true)}>
-        Like</button>
+      <button onClick= {() => setHasLiked(!hasLiked)}>
+      {hasLiked ? "❤️" : "🤍"}</button>
     </div>
   );
 };
