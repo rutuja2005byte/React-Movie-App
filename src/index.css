@@ -25,5 +25,10 @@ h2 {
 }
 
 .card {
-  border: 2px solid red;
+  border: 1px solid #4b5362;
+  padding: 20px;
+  margin: 10px;
+  background-color: #31363f;
+  border-radius: 10px;
+  min-height: 100px;
 }

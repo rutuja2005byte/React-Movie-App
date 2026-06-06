@@ -1,6 +1,6 @@
 const Card = ({ title }) => {
   return (
-    <div>
+    <div className="card">
       <h2>{title}</h2>
     </div>
   );
