@@ -1,21 +1,19 @@
 const Card = ({ title }) => {
-  return(
+  return (
     <div>
-      <h2>{ title }</h2>
+      <h2>{title}</h2>
     </div>
-  )
-}
+  );
+};
 
 const App = () => {
   return (
-    <div>
-      <h2>Functional Arrow Component</h2>
-
-      <Card title="Stars Wars" />
+    <div className="card-conatiner">
+      <Card title="Stars Wars" rating={5} iscool={true} />
       <Card title="Avatar" />
       <Card title="The Lion King" />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
