@@ -1,8 +1,25 @@
 import Search from './components/search.jsx';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_BASE_URL = "https://api.themoviedb.org/3";
+const API_KEY = import.meta.env.VITE_OMADB_API_KEY;
+
+const API_OPTIONS = {
+  method: 'GET',
+  header: {
+    accept: 'application.json',
+    Authorization: `Bearer ${API_KEY}`
+  }
+}
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
+
+  
+
+  useEffect ( () => {
+
+  },[]);
 
   return (
     <main>
