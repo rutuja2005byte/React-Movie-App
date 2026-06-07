@@ -6,7 +6,7 @@ const API_KEY = import.meta.env.VITE_OMADB_API_KEY;
 
 const API_OPTIONS = {
   method: 'GET',
-  header: {
+  headers: {
     accept: 'application.json',
     Authorization: `Bearer ${API_KEY}`
   }
