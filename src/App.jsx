@@ -15,7 +15,13 @@ const API_OPTIONS = {
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  
+  const fetchMovies = async () => {
+    try {
+
+    } catch (error) {
+      console.log(`Error fetching movies: ${error}`);
+    }
+  }
 
   useEffect ( () => {
 
