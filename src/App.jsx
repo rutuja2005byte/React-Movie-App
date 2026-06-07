@@ -1,4 +1,5 @@
 import Search from './components/search.jsx';
+import { useState } from 'react';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('I AM BATMAN');
