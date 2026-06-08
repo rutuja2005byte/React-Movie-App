@@ -1,16 +1,30 @@
-# React + Vite
+react-movie-app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Quick start
 
-Currently, two official plugins are available:
+1. Install dependencies
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+```
 
-## React Compiler
+2. Create a `.env.local` file in project root with:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+VITE_APPWRITE_PROJECT_ID=your_project_id
+VITE_APPWRITE_DATABASE_ID=your_database_id
+VITE_APPWRITE_COLLECTION_ID=your_collection_id
+VITE_TMDB_API_KEY=your_tmdb_api_key
+```
 
-## Expanding the ESLint configuration
+3. Run dev server
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run dev
+```
+
+Notes
+
+- The app logs masked env values in the browser console at startup to help verify values without exposing secrets.
+- If Appwrite shows "Collection not found", confirm the `VITE_APPWRITE_COLLECTION_ID` in Appwrite console.
+- If OMDB calls time out, verify `VITE_TMDB_API_KEY` and network connectivity.
