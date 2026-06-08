@@ -1,30 +1,23 @@
-react-movie-app
+# React Movie App
 
-Quick start
+A responsive movie discovery application built with React, featuring movie search, trending titles, and a clean user experience.
 
-1. Install dependencies
+![Preview](./image.png)
+
+## Stack
+
+React • JavaScript • CSS • Appwrite
+
+## Run Locally
 
 ```bash
 npm install
-```
-
-2. Create a `.env.local` file in project root with:
-
-```
-VITE_APPWRITE_PROJECT_ID=your_project_id
-VITE_APPWRITE_DATABASE_ID=your_database_id
-VITE_APPWRITE_COLLECTION_ID=your_collection_id
-VITE_TMDB_API_KEY=your_tmdb_api_key
-```
-
-3. Run dev server
-
-```bash
 npm run dev
 ```
 
-Notes
+## Features
 
-- The app logs masked env values in the browser console at startup to help verify values without exposing secrets.
-- If Appwrite shows "Collection not found", confirm the `VITE_APPWRITE_COLLECTION_ID` in Appwrite console.
-- If OMDB calls time out, verify `VITE_TMDB_API_KEY` and network connectivity.
+- Movie search
+- Trending movies
+- Responsive UI
+- Fast performance
