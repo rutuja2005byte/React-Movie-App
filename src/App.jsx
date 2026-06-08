@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx'
 import MovieCard from './components/MovieCard.jsx'
@@ -179,6 +181,63 @@ const mapMovieData = (movie) => {
   };
 };
 
+const TrendingItem = ({ movie, index }) => {
+  const itemRef = useRef(null)
+  const posterRef = useRef(null)
+
+  useGSAP(() => {
+    gsap.from(itemRef.current, {
+      opacity: 0,
+      x: -30,
+      duration: 0.5,
+      delay: 0.6 + index * 0.1,
+      ease: 'power2.out',
+    })
+  }, { scope: itemRef })
+
+  const handleMouseEnter = () => {
+    gsap.to(posterRef.current, {
+      scale: 1.1,
+      y: -6,
+      duration: 0.3,
+      ease: 'power2.out',
+    })
+    gsap.to(itemRef.current.querySelector('p'), {
+      scale: 1.05,
+      duration: 0.3,
+      ease: 'power2.out',
+    })
+  }
+
+  const handleMouseLeave = () => {
+    gsap.to(posterRef.current, {
+      scale: 1,
+      y: 0,
+      duration: 0.3,
+      ease: 'power2.out',
+    })
+    gsap.to(itemRef.current.querySelector('p'), {
+      scale: 1,
+      duration: 0.3,
+      ease: 'power2.out',
+    })
+  }
+
+  return (
+    <li
+      ref={itemRef}
+      className="cursor-pointer"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <p>{index + 1}</p>
+      <div className="overflow-hidden rounded-lg">
+        <img ref={posterRef} src={movie.poster_url} alt={movie.title} />
+      </div>
+    </li>
+  )
+}
+
 const App = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('');
@@ -188,6 +247,41 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [trendingMovies, setTrendingMovies] = useState([]);
+
+  const headerRef = useRef(null)
+  const trendingRef = useRef(null)
+  const moviesRef = useRef(null)
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
+
+    tl.from(headerRef.current.querySelector('.hero-img'), {
+      opacity: 0,
+      y: -30,
+      duration: 0.8,
+    })
+      .from(headerRef.current.querySelector('.hero-title'), {
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+      }, '-=0.4')
+      .from(moviesRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+      }, '-=0.2')
+  }, { scope: headerRef })
+
+  useGSAP(() => {
+    if (trendingRef.current) {
+      gsap.from(trendingRef.current, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        ease: 'power2.out',
+      })
+    }
+  }, { dependencies: [trendingMovies.length] })
 
   // Debounce search input
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
@@ -325,31 +419,26 @@ const App = () => {
       <div className="pattern"/>
 
       <div className="wrapper">
-        <header>
-          <img src="./hero.png" alt="Hero Banner" />
-          <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
+        <header ref={headerRef}>
+          <img className="hero-img" src="./hero.png" alt="Hero Banner" />
+          <h1 className="hero-title">Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
 
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-
-
         {trendingMovies.length > 0 && (
-          <section className="trending">
+          <section ref={trendingRef} className="trending">
             <h2>Trending Movies</h2>
 
             <ul>
               {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
-                  <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.title} />
-                </li>
+                <TrendingItem key={movie.$id} movie={movie} index={index} />
               ))}
             </ul>
           </section>
         )}
 
-        <section className="all-movies">
+        <section ref={moviesRef} className="all-movies">
           <h2>All Movies</h2>
 
           {isLoading ? (
@@ -360,15 +449,15 @@ const App = () => {
             <div className="text-center py-8">
               <p className="text-amber-400 font-medium mb-4">{errorMessage}</p>
               <ul className="grid grid-cols-1 gap-5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {movieList.map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} />
+                {movieList.map((movie, index) => (
+                  <MovieCard key={movie.id} movie={movie} index={index} />
                 ))}
               </ul>
             </div>
           ) : (
             <ul>
-              {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+              {movieList.map((movie, index) => (
+                <MovieCard key={movie.id} movie={movie} index={index} />
               ))}
             </ul>
           )}
