@@ -1,89 +1,89 @@
-import Search from './components/search.jsx';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react'
+import Search from './components/search.jsx'
+import Spinner from './components/spinner.jsx'
+import MovieCard from './components/MovieCard.jsx'
+import { useDebounce } from 'react-use'
+import { getTrendingMovies, updateSearchCount } from './appwrite.js'
 
-const API_BASE_URL = "https://www.omdbapi.com";
-const API_KEY = import.meta.env.VITE_OMADB_API_KEY;
+const API_BASE_URL = 'https://api.themoviedb.org/3';
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+const API_OPTIONS = {
+  method: 'GET',
+  headers: {
+    accept: 'application/json',
+    Authorization: `Bearer ${API_KEY}`
+  }
+}
 
 const App = () => {
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [movies, setMovies] = useState([]);
+
+  const [movieList, setMovieList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm]);
+  // Debounce the search term to prevent making too many API requests
+  // by waiting for the user to stop typing for 500ms
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
 
-  const fetchDefaultMovies = async () => {
+  const fetchMovies = async (query = '') => {
+    setIsLoading(true);
     setErrorMessage('');
+
     try {
-      const defaultIds = [
-        'tt0468569',
-        'tt1375666',
-        'tt0816692',
-        'tt0133093',
-        'tt0499549',
-        'tt0848228',
-        'tt0172495',
-        'tt10877209',
-        'tt0120338',
-      ];
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
 
-      const promises = defaultIds.map(id =>
-        fetch(`${API_BASE_URL}/?i=${id}&apikey=${API_KEY}`).then(res => res.json())
-      );
-      
-      const results = await Promise.all(promises);
-      const formattedMovies = results.filter(movie => movie.Response !== 'False');
-      setMovies(formattedMovies);
-    } catch (error) {
-      console.log(`Error fetching default movies: ${error}`);
-      setErrorMessage('Failed to load top movies. Please try again later.');
-      setMovies([]);
-    }
-  };
+      const response = await fetch(endpoint, API_OPTIONS);
 
-  const fetchMovies = async (query) => {
-    setErrorMessage('');
-    try {
-      const endpoint = `${API_BASE_URL}/?s=${encodeURIComponent(query)}&apikey=${API_KEY}`;
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch Movies');
+      if(!response.ok) {
+        throw new Error('Failed to fetch movies');
       }
 
       const data = await response.json();
 
-      if (data.Response === 'False') {
-        throw new Error(data.Error || 'Failed to fetch Movies');
+      if(data.Response === 'False') {
+        setErrorMessage(data.Error || 'Failed to fetch movies');
+        setMovieList([]);
+        return;
       }
 
-      setMovies(data.Search || []);
+      setMovieList(data.results || []);
+
+      if(query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
-      console.log(`Error fetching movies: ${error}`);
-      setErrorMessage(error.message || 'Error fetching movie. Please try again later.');
-      setMovies([]);
+      console.error(`Error fetching movies: ${error}`);
+      setErrorMessage('Error fetching movies. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }
+
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error(`Error fetching trending movies: ${error}`);
+    }
+  }
 
   useEffect(() => {
-    const cleanSearchTerm = debouncedSearchTerm.trim();
-    
-    if (cleanSearchTerm === '') {
-      fetchDefaultMovies();
-    } else if (cleanSearchTerm.length < 3) {
-      setErrorMessage('');
-    } else {
-      fetchMovies(cleanSearchTerm);
-    }
+    fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   return (
     <main>
@@ -91,51 +91,45 @@ const App = () => {
 
       <div className="wrapper">
         <header>
-          <img src="./hero.png" alt="Hero Banner"/>
-          <h1>Find <span className="text-gradient" >Movies</span> You'll Enjoy Without the Hassle</h1>
+          <img src="./hero.png" alt="Hero Banner" />
+          <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
 
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="all-movies">
           <h2>All Movies</h2>
 
-          {errorMessage ? (
+          {isLoading ? (
+            <Spinner />
+          ) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul>
-              {movies.map((movie) => (
-                <li key={movie.imdbID} className="movie-card">
-                  <img 
-                    src={movie.Poster !== 'N/A' ? movie.Poster : './no-movie.png'} 
-                    alt={movie.Title} 
-                  />
-                  
-                  <div className="mt-4">
-                    <h3>{movie.Title}</h3>
-                    
-                    <div className="content">
-                      <div className="rating">
-                        <img src="./star.png" alt="Star Icon" />
-                        <p>{movie.imdbRating || 'N/A'}</p>
-                      </div>
-                      
-                      <span>•</span>
-                      <p className="lang">{movie.Type}</p>
-                      
-                      <span>•</span>
-                      <p className="year">{movie.Year}</p>
-                    </div>
-                  </div>
-                </li>
+              {movieList.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
         </section>
-        
       </div>
     </main>
-  );
-};
+  )
+}
 
 export default App;
