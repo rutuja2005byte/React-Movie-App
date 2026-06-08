@@ -17,24 +17,33 @@ export const updateSearchCount = async (searchTerm, movie) => {
     Query.equal('searchTerm', searchTerm),
   ])
 
-  // 2. If it does, update the count
-  if(result.documents.length > 0) {
-   const doc = result.documents[0];
+  const documents = Array.isArray(result?.documents) ? result.documents : [];
 
-   await database.updateDocument(DATABASE_ID, COLLECTION_ID, doc.$id, {
-    count: doc.count + 1,
-   })
-  // 3. If it doesn't, create a new document with the search term and count as 1
+  // 2. If it does, update the count
+  if (documents.length > 0) {
+    const doc = documents[0];
+
+    const newCount = typeof doc.count === 'number' ? doc.count + 1 : 1;
+
+    await database.updateDocument(DATABASE_ID, COLLECTION_ID, doc.$id, {
+      count: newCount,
+    })
+    // 3. If it doesn't, create a new document with the search term and count as 1
   } else {
-   await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-    searchTerm,
-    count: 1,
-    movie_id: movie.id,
-    poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-   })
+    await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+      searchTerm,
+      count: 1,
+      movie_id: movie?.id ?? null,
+      poster_url: movie?.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+    })
   }
  } catch (error) {
-  console.error(error);
+  console.error('Appwrite error in updateSearchCount - please verify PROJECT_ID, DATABASE_ID and COLLECTION_ID:', {
+    project: PROJECT_ID,
+    database: DATABASE_ID,
+    collection: COLLECTION_ID,
+    error,
+  });
  }
 }
 
@@ -44,9 +53,14 @@ export const getTrendingMovies = async () => {
     Query.limit(5),
     Query.orderDesc("count")
   ])
-
-  return result.documents;
+  return Array.isArray(result?.documents) ? result.documents : [];
  } catch (error) {
-  console.error(error);
+   console.error('Appwrite error in getTrendingMovies - returning empty list. Verify your Appwrite setup:', {
+     project: PROJECT_ID,
+     database: DATABASE_ID,
+     collection: COLLECTION_ID,
+     error,
+   });
+  return [];
  }
 }

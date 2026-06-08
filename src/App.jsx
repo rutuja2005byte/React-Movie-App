@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import Search from './components/search.jsx'
-import Spinner from './components/spinner.jsx'
+import Search from './components/Search.jsx'
+import Spinner from './components/Spinner.jsx'
 import MovieCard from './components/MovieCard.jsx'
 import { useDebounce } from 'react-use'
 import { getTrendingMovies, updateSearchCount } from './appwrite.js'
@@ -18,6 +18,29 @@ const API_OPTIONS = {
 }
 
 const App = () => {
+  // Small, safe debug: log masked environment variables so you can confirm
+  // the running app is using the values you expect without revealing secrets.
+  const mask = (s = '') => {
+    if (!s) return 'NOT SET';
+    const st = String(s);
+    if (st.length <= 8) return `${st.slice(0, 2)}...${st.slice(-2)}`;
+    return `${st.slice(0, 4)}...${st.slice(-4)}`;
+  };
+
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.info('ENV (masked):', {
+        VITE_APPWRITE_PROJECT_ID: mask(import.meta.env.VITE_APPWRITE_PROJECT_ID),
+        VITE_APPWRITE_DATABASE_ID: mask(import.meta.env.VITE_APPWRITE_DATABASE_ID),
+        VITE_APPWRITE_COLLECTION_ID: mask(import.meta.env.VITE_APPWRITE_COLLECTION_ID),
+        VITE_TMDB_API_KEY: mask(import.meta.env.VITE_TMDB_API_KEY),
+      });
+    } catch (e) {
+      // ignore in case import.meta.env isn't available in some environments
+    }
+  }, []);
+
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -56,7 +79,7 @@ const App = () => {
 
       setMovieList(data.results || []);
 
-      if(query && data.results.length > 0) {
+      if (query && Array.isArray(data.results) && data.results.length > 0) {
         await updateSearchCount(query, data.results[0]);
       }
     } catch (error) {
