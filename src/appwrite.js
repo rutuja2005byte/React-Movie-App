@@ -30,11 +30,21 @@ export const updateSearchCount = async (searchTerm, movie) => {
     })
     // 3. If it doesn't, create a new document with the search term and count as 1
   } else {
+    const movieId = String(movie?.id || movie?.imdbID || movie?.movie_id || '');
+    let posterUrl = null;
+    if (movie?.posterUrl) {
+      posterUrl = movie.posterUrl;
+    } else if (movie?.poster_path) {
+      posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+    } else if (movie?.Poster && movie?.Poster !== 'N/A') {
+      posterUrl = movie.Poster;
+    }
+
     await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
       searchTerm,
       count: 1,
-      movie_id: movie?.id ?? null,
-      poster_url: movie?.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+      movie_id: movieId || null,
+      poster_url: posterUrl || null,
     })
   }
  } catch (error) {
